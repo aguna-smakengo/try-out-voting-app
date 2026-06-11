@@ -16,17 +16,6 @@ docker compose up
 
 The `vote` app will be running at [http://localhost:5000](http://localhost:5000), and the `results` will be at [http://localhost:5001](http://localhost:5001).
 
-Alternately, if you want to run it on a [Docker Swarm](https://docs.docker.com/engine/swarm/), first make sure you have a swarm. If you don't, run:
-
-```shell
-docker swarm init
-```
-
-Once you have your swarm, in this directory run:
-
-```shell
-docker stack deploy --compose-file docker-stack.yml vote
-```
 
 ## Run the app in Kubernetes
 
@@ -56,12 +45,16 @@ kubectl delete -f k8s-specifications/
 * A [Postgres](https://hub.docker.com/_/postgres/) database backed by a Docker volume
 * A [Node.js](/result) web app which shows the results of the voting in real time
 
-## Using External PostgreSQL and Redis
+## Environment Variables
 
-1. Change redis host information in `vote/app.py` and `worker/Program.cs`
-2. Change postgres credentials in `worker/Program.cs` and `result/server.js`
+You can configure external PostgreSQL and Redis connections using environment variables. When deploying, you can inject these directly or reference them from a secure store (e.g., AWS SSM Parameter Store).
 
-If you have more time and are very concerned about the security of credentials in postgres, you can store them in variables or other secret managers. 
+*   `REDIS_HOST`: The hostname of your Redis server. Used by the `vote` and `worker` services.
+    *   **Example:** `lks-redis.lfc5mu.ng.0001.use1.cache.amazonaws.com`
+*   `POSTGRES_CONNECTION_STRING`: The connection string for your PostgreSQL database. Used by the `result` and `worker` services. Note that the expected format differs slightly depending on the service:
+    *   **Example for `result` (Node.js):** `postgres://postgres:LKSNCC2024@lks-rds.cvnb1e2wtrmb.us-east-1.rds.amazonaws.com/postgres`
+    *   **Example for `worker` (.NET):** `Server=lks-rds.cvnb1e2wtrmb.us-east-1.rds.amazonaws.com:5432;Username=postgres;Password=LKSNCC2024;`
+
 ## Notes
 
 The voting application only accepts one vote per client browser. It does not register additional votes if a vote has already been submitted from a client.
